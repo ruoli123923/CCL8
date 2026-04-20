@@ -22,10 +22,6 @@ GSE206932.exp = GSE206932.exp[samegene,]
 GSE224570.exp = GSE224570.exp[samegene,]
 GSE217314.exp = GSE217314.exp[samegene,]
 
-#合并，导出
-Test <- cbind(GSE206932.exp, GSE224570.exp)
-Train_expr <- GSE217314.exp
-
 #加载包
 library(openxlsx)
 library(seqinr)
@@ -50,14 +46,11 @@ library(ggpubr)
 #加载模型训练以及模型评估的脚本
 source("ML.R")
 Train_expr <- GSE217314.exp
-
+Test_expr <- cbind(GSE206932.exp, GSE224570.exp)
 common_genes <- Reduce(intersect, list(
   rownames(GSE206932.exp),
   rownames(GSE224570.exp)
 ))
-
-Test_expr <- cbind(GSE206932.exp, GSE224570.exp)
-
 #读入训练集表达矩阵，及分组信息（结局事件）
 Train_class <- read.table(
   "predata/Training_class.txt",
@@ -82,8 +75,8 @@ Train_expr <- t(Train_expr[common_genes,])
 Test_expr <- t(Test_expr[common_genes,])
 
 #标准化
-Train_set <- t(scale(t(Train_expr), center = TRUE, scale = TRUE))
-Test_set  <- t(scale(t(Test_expr), center = TRUE, scale = TRUE))
+Train_set = scaleData(data = Train_expr, centerFlags = T, scaleFlags = T) 
+Test_set = scaleData(data = Test_expr, cohort = Test_class$cohort, centerFlags = T, scaleFlags = T)
 #去除NA然后重新保留样本
 Train_set <- Train_set[complete.cases(Train_set), ]
 Train_class <- Train_class[complete.cases(Train_set), ]
